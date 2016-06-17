@@ -20,5 +20,5 @@ import columnize.menu.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url('', columnize.menu.views.show),
+    url('^$', columnize.menu.views.show),
 ]

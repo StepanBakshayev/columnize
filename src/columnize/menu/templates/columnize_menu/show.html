@@ -1,22 +1,24 @@
+{% load columnize %}
 <!doctype html>
 <html>
 <head>
     <title>Split items of menu to 6 columns</title>
     <style>
-        .category__item {
-            columns: 6;
-            list-style-type: none;
-        }
+        .category__item__group { display: inline-block; position: relative; vertical-align: top; }
     </style>
 </head>
 <body>
     {% for category in categories %}
     <h1>{{ category.name }}</h1>
-    <ul class="category__item">
-        {% for item in category.item_set.all %}
-        <li>{{ item.name }}</li>
+    <div class="category__items">
+        {% for group in category.item_set.all|columns:8 %}
+        <ul class="category__item__group">
+            {% for item in group %}
+            <li>{{ item.name }}</li>
+            {% endfor %}
+        </ul>
         {% endfor %}
-    </ul>
+    </div>
     {% endfor %}
 </body>
 </html>

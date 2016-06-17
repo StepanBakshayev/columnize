@@ -13,3 +13,4 @@ class CategoryAdmin(admin.ModelAdmin):
 class ItemAdmin(admin.ModelAdmin):
     list_display = 'id', 'category', 'name',
     ordering = 'category__id', 'name',
+    list_filter = 'category',
