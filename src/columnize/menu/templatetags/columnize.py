@@ -5,59 +5,25 @@ from itertools import chain
 from django import template
 from django.db import models
 
+from ..utils import split
+
 
 register = template.Library()
 
 
-def split_in_half(values):
-    if not values:
-        return [deque(), deque()]
-
-    head_width = 0
-    tail_width = 0
-    head = []
-    tail = []
-
-    values = values.copy()
-    head.append(values.popleft())
-    head_width += head[-1][1]
-
-    while values:
-        while head_width < tail_width and values:
-            head.append(values.popleft())
-            head_width += head[-1][1]
-        while tail_width <= head_width and values:
-            tail.append(values.pop())
-            tail_width += tail[-1][1]
-
-    head.sort()
-    tail.sort()
-    return [deque(head), deque(tail)]
-
-
-def split(values, parts):
-    result = [values,]
-    for _ in range(parts):
-        splitted = []
-        for v in result:
-            head, tail = split_in_half(v)
-            if head:
-                splitted.append(head)
-            if tail:
-                splitted.append(tail)
-        result = splitted
-    return result
-
-
 @register.filter
 def columns(items, number):
-    letters = Counter()
+    counter = Counter()
     for name in items.only('name').values_list('name', flat=True):
-        letters[name[:1]] += 1
+        counter[name[:1]] += 1
 
     ordered = items.order_by('name')
-    for d in split(deque(sorted(letters.items())), int(log2(number))):
+    letters = sorted(counter.items())
+
+    index = 0
+    for group in split([l[1] for l in letters], number):
         q = models.Q()
-        for x in d:
-            q |= models.Q(name__startswith=x[0])
+        for _ in group:
+            q |= models.Q(name__startswith=letters[index][0])
+            index += 1
         yield ordered.filter(q)

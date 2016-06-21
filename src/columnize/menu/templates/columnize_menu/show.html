@@ -9,9 +9,10 @@
 </head>
 <body>
     {% for category in categories %}
-    <h1>{{ category.name }}</h1>
+    {% with split_by|random as by %}
+    <h1>{{ category.name }} ({{ category.item_set.count}} / {{ by }})</h1>
     <div class="category__items">
-        {% for group in category.item_set.all|columns:8 %}
+        {% for group in category.item_set.all|columns:by %}
         <ul class="category__item__group">
             {% for item in group %}
             <li>{{ item.name }}</li>
@@ -19,6 +20,7 @@
         </ul>
         {% endfor %}
     </div>
+    {% endwith %}
     {% endfor %}
 </body>
 </html>
