@@ -21,7 +21,6 @@ def columns(items, number):
     letters = sorted(counter.items())
 
     index = 0
-    print(letters)
     for group in split([l[1] for l in letters], number):
         q = models.Q()
         for _ in group:

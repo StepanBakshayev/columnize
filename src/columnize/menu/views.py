@@ -4,4 +4,4 @@ from .models import Category
 
 
 def show(request):
-    return render(request, 'columnize_menu/show.html', {'categories': Category.objects.all()[3:4], 'split_by':  [5] or list(range(1, 9))})
+    return render(request, 'columnize_menu/show.html', {'categories': Category.objects.all(), 'split_by': list(range(2, 9))})

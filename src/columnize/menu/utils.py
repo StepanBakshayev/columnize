@@ -19,40 +19,48 @@ def split(values, by):
         yield (values[0],)
         return
 
+    if values_len <= by:
+        for v in values:
+            yield (v,)
+        return
+
     head = values_len - by
     groups = [0,]*(head) + list(range(by))
-    weights = [sum(values[:head]),] + values[head:]
+    counts = [head+1] + [1] * (by-1)
     best_groups = deepcopy(groups)
+    weights = [sum(values[:head]),] + values[head:]
     max_weight = max(weights)
     best_score = sum((max_weight-w for w in weights))
-    assert sum(weights) == sum(values)
 
-    while groups[0] == 0:
-        print(groups)
+    while True:
         items = iter(groups)
         previous_index = 0
         previous_group = next(items)
         for index, group in enumerate(items, 1):
-            if previous_group != group:
+            if previous_group != group and counts[previous_group] > 1:
                 groups[previous_index] += 1
+                counts[previous_group] -= 1
+                counts[group] += 1
 
-                weights = []
-                for _, items in groupby(zip(groups, values), lambda x: x[0]):
-                    weights.append(sum(i[1] for i in items))
+                weights = [0] * by
+                for number, items in groupby(zip(groups, values), lambda x: x[0]):
+                    weights[number] = sum(i[1] for i in items)
                 max_weight = max(weights)
                 score = sum((max_weight-w for w in weights))
-                print('w', weights)
-                print('best', best_score, 'score', score)
                 if best_score > score:
                     best_groups = deepcopy(groups)
                     best_score = score
 
+                if sum(weights[:group]) > sum(weights[group:]):
+                    break
+
+            if group + 1 == by:
                 break
 
             previous_index, previous_group = index, group
 
+        if sum(counts[:-1]) == by - 1:
+            break
 
-    print()
-    print()
     for _, items in groupby(zip(best_groups, values), lambda x: x[0]):
         yield (i[1] for i in items)
