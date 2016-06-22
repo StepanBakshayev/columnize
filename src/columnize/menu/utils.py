@@ -30,7 +30,7 @@ def split(values, by):
     best_groups = deepcopy(groups)
     weights = [sum(values[:head]),] + values[head:]
     max_weight = max(weights)
-    best_score = sum((max_weight-w for w in weights))
+    best_score = (sum((max_weight-w for w in weights)), max_weight-min(weights))
 
     while True:
         items = iter(groups)
@@ -46,7 +46,7 @@ def split(values, by):
                 for number, items in groupby(zip(groups, values), lambda x: x[0]):
                     weights[number] = sum(i[1] for i in items)
                 max_weight = max(weights)
-                score = sum((max_weight-w for w in weights))
+                score = (sum((max_weight-w for w in weights)), max_weight-min(weights))
                 if best_score > score:
                     best_groups = deepcopy(groups)
                     best_score = score
