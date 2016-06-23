@@ -48,6 +48,7 @@ def split(values, by):
 
     #print('start', groups)
     while under_pressure+1 < by:
+        #print('groups', groups)
         items = groupby(enumerate(groups), lambda x: x[1])
         for column, group in items:
             if column != under_pressure:
@@ -69,7 +70,11 @@ def split(values, by):
                 #print('press', under_pressure, groups)
                 best_score, best_groups, weights = make_choice(best_score, best_groups, groups, values, by)
 
+            #print(column)
             break
+        else:
+            #print('exit without break')
+            pass
 
         column, group = next(items)
         if column == under_pressure:
@@ -86,9 +91,12 @@ def split(values, by):
                 last_index = i
                 group_count += 1
 
+            if group_count == 1:
+                continue
+
             if weights[column] > weights[column+1]:
                 groups[last_index] += 1
-                #print('wave', under_pressure, groups)
+                #print('wave', under_pressure, last_index, groups)
                 best_score, best_groups, weights = make_choice(best_score, best_groups, groups, values, by)
                 moved = True
 
