@@ -1,5 +1,5 @@
 from copy import deepcopy
-from itertools import groupby
+from itertools import groupby, chain
 
 
 def split(values, by):
@@ -32,8 +32,8 @@ def split(values, by):
         max_weight = max(weights)
         score = (sum((max_weight-w for w in weights)), max_weight-min(weights))
         if best_score > score:
-            return (score, deepcopy(groups))
-        return (best_score, best_groups)
+            return score, deepcopy(groups), weights
+        return best_score, best_groups, weights
 
 
     head = values_len - by
@@ -46,12 +46,15 @@ def split(values, by):
     under_pressure = 0
     moved = False
 
-    print('start', groups)
+    #print('start', groups)
     while under_pressure+1 < by:
         items = groupby(enumerate(groups), lambda x: x[1])
         for column, group in items:
             if column != under_pressure:
                 continue
+
+            if moved:
+                break
 
             last_index, _ = next(group)
             group_count = 1
@@ -63,8 +66,8 @@ def split(values, by):
                 under_pressure += 1
             else:
                 groups[last_index] += 1
-                print('press', under_pressure, groups)
-                best_score, best_groups = make_choice(best_score, best_groups, groups, values, by)
+                #print('press', under_pressure, groups)
+                best_score, best_groups, weights = make_choice(best_score, best_groups, groups, values, by)
 
             break
 
@@ -72,33 +75,25 @@ def split(values, by):
         if column == under_pressure:
             continue
 
-        # previous_index = under_pressure
-        # previous_group = next(items)
-        # for index, group in enumerate(items, 1):
-        #     if previous_group != group and counts[previous_group] > 1:
-        #         groups[previous_index] += 1
-        #         counts[previous_group] -= 1
-        #         counts[group] += 1
+        moved = False
+        for column, group in chain(((column, group),), items):
+            if column+1 == by:
+                break
 
-        #         weights = [0] * by
-        #         for number, items in groupby(zip(groups, values), lambda x: x[0]):
-        #             weights[number] = sum(i[1] for i in items)
-        #         max_weight = max(weights)
-        #         score = (sum((max_weight-w for w in weights)), max_weight-min(weights))
-        #         if best_score > score:
-        #             best_groups = deepcopy(groups)
-        #             best_score = score
+            last_index, _ = next(group)
+            group_count = 1
+            for i, _ in group:
+                last_index = i
+                group_count += 1
 
-        #         if sum(weights[:group]) > sum(weights[group:]):
-        #             break
+            if weights[column] > weights[column+1]:
+                groups[last_index] += 1
+                #print('wave', under_pressure, groups)
+                best_score, best_groups, weights = make_choice(best_score, best_groups, groups, values, by)
+                moved = True
 
-        #     if group + 1 == by:
-        #         break
-
-        #     previous_index, previous_group = index, group
-
-        # if sum(counts[:-1]) == by - 1:
-        #     break
+    #print()
+    #print()
 
     for _, items in groupby(zip(best_groups, values), lambda x: x[0]):
         yield (i[1] for i in items)

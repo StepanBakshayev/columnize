@@ -19,6 +19,7 @@ def columns(items, number):
 
     ordered = items.order_by('name')
     letters = sorted(counter.items())
+    #print('letters', letters)
 
     index = 0
     for group in split([l[1] for l in letters], number):
