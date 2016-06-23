@@ -24,43 +24,81 @@ def split(values, by):
             yield (v,)
         return
 
+
+    def make_choice(best_score, best_groups, groups, values, by):
+        weights = [0] * by
+        for number, items in groupby(zip(groups, values), lambda x: x[0]):
+            weights[number] = sum(i[1] for i in items)
+        max_weight = max(weights)
+        score = (sum((max_weight-w for w in weights)), max_weight-min(weights))
+        if best_score > score:
+            return (score, deepcopy(groups))
+        return (best_score, best_groups)
+
+
     head = values_len - by
     groups = [0,]*(head) + list(range(by))
-    counts = [head+1] + [1] * (by-1)
+    #counts = [head+1] + [1] * (by-1)
     best_groups = deepcopy(groups)
     weights = [sum(values[:head]),] + values[head:]
     max_weight = max(weights)
     best_score = (sum((max_weight-w for w in weights)), max_weight-min(weights))
+    under_pressure = 0
+    moved = False
 
-    while True:
-        items = iter(groups)
-        previous_index = 0
-        previous_group = next(items)
-        for index, group in enumerate(items, 1):
-            if previous_group != group and counts[previous_group] > 1:
-                groups[previous_index] += 1
-                counts[previous_group] -= 1
-                counts[group] += 1
+    print('start', groups)
+    while under_pressure+1 < by:
+        items = groupby(enumerate(groups), lambda x: x[1])
+        for column, group in items:
+            if column != under_pressure:
+                continue
 
-                weights = [0] * by
-                for number, items in groupby(zip(groups, values), lambda x: x[0]):
-                    weights[number] = sum(i[1] for i in items)
-                max_weight = max(weights)
-                score = (sum((max_weight-w for w in weights)), max_weight-min(weights))
-                if best_score > score:
-                    best_groups = deepcopy(groups)
-                    best_score = score
+            last_index, _ = next(group)
+            group_count = 1
+            for i, _ in group:
+                last_index = i
+                group_count += 1
 
-                if sum(weights[:group]) > sum(weights[group:]):
-                    break
+            if group_count == 1:
+                under_pressure += 1
+            else:
+                groups[last_index] += 1
+                print('press', under_pressure, groups)
+                best_score, best_groups = make_choice(best_score, best_groups, groups, values, by)
 
-            if group + 1 == by:
-                break
-
-            previous_index, previous_group = index, group
-
-        if sum(counts[:-1]) == by - 1:
             break
+
+        column, group = next(items)
+        if column == under_pressure:
+            continue
+
+        # previous_index = under_pressure
+        # previous_group = next(items)
+        # for index, group in enumerate(items, 1):
+        #     if previous_group != group and counts[previous_group] > 1:
+        #         groups[previous_index] += 1
+        #         counts[previous_group] -= 1
+        #         counts[group] += 1
+
+        #         weights = [0] * by
+        #         for number, items in groupby(zip(groups, values), lambda x: x[0]):
+        #             weights[number] = sum(i[1] for i in items)
+        #         max_weight = max(weights)
+        #         score = (sum((max_weight-w for w in weights)), max_weight-min(weights))
+        #         if best_score > score:
+        #             best_groups = deepcopy(groups)
+        #             best_score = score
+
+        #         if sum(weights[:group]) > sum(weights[group:]):
+        #             break
+
+        #     if group + 1 == by:
+        #         break
+
+        #     previous_index, previous_group = index, group
+
+        # if sum(counts[:-1]) == by - 1:
+        #     break
 
     for _, items in groupby(zip(best_groups, values), lambda x: x[0]):
         yield (i[1] for i in items)
